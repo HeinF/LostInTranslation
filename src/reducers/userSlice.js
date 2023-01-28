@@ -16,6 +16,8 @@ export const fetchUser = createAsyncThunk(
       const user = userArray.pop();
       return { user };
     }
+    // Return username so that it can be used to create a new user
+    // Return "User not found" as an error so that the component knows to call "createUser"
     const user = {
       username: username,
       error: "User not found",
@@ -77,6 +79,8 @@ export const userSlice = createSlice({
       state.loadingUser = true;
     },
     [createUser.rejected]: (state, action) => {
+      // If creation failed, set username back to initial state
+      state.username = null;
       state.error = action.error;
       state.loadingUser = false;
     },

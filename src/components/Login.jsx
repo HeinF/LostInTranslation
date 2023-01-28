@@ -1,8 +1,11 @@
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import { fetchUser, createUser } from "../reducers/userSlice";
 import { storageSave } from "../utils/storage";
+
+const localKey = process.env.REACT_APP_LOCAL_STORAGE_KEY;
 
 const usernameConfig = {
   required: true,
@@ -17,25 +20,22 @@ const Login = () => {
     formState: { errors },
   } = useForm();
 
-  // Local State
-  const [loading, setLoading] = useState(false);
-  const [apiError, setApiError] = useState(null);
-  const [userInput, setUserInput] = useState("");
-  const { user, loadingUser, error } = useSelector((state) => state);
+  const { user } = useSelector((state) => state);
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+
   // Side Effects
   useEffect(() => {
     console.log("From useEffect");
     if (user.error === "User not found") {
       dispatch(createUser(user.username));
     }
-    if (user.username !== null) {
-      storageSave("translation-user", user);
+    if (user.username !== null && user.error !== "User not found") {
+      storageSave(localKey, user);
     }
-  }, [user, dispatch, user.username]);
+  }, [user, dispatch]);
 
   const onSubmit = ({ username }) => {
-    setUserInput(username);
     dispatch(fetchUser(username));
   };
 
