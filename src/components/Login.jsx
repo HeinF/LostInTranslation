@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { fetchUser, createUser, loadLocalUser } from "../reducers/userSlice";
 import { storageSave } from "../utils/storage";
+import { USER_NOT_FOUND } from "../const/index";
 
 const localKey = process.env.REACT_APP_LOCAL_STORAGE_KEY;
 
@@ -30,7 +31,7 @@ const Login = () => {
 
   // Side Effects
   useEffect(() => {
-    if (user.error === "User not found") {
+    if (user.error === USER_NOT_FOUND) {
       dispatch(createUser(user.username));
     }
     if (user.storedLocal === true) {

@@ -4,6 +4,7 @@ import { addTranslation, checkLocalUser } from "../reducers/userSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import SignDisplay from "./SignDisplay";
+import { ADD_TRANSLATION_FAILED } from "../const/index";
 
 const inputConfig = {
   required: true,
@@ -61,9 +62,10 @@ const Translate = () => {
       {!user.loading && user.error === null && (
         <SignDisplay text={newestTranslation} />
       )}
-      {user.error === "addTranslation failed" && (
+      {user.error === ADD_TRANSLATION_FAILED && (
         <p>Error: Could not save translation</p>
       )}
+      {user.loading && <p>Translating, please wait....</p>}
     </>
   );
 };

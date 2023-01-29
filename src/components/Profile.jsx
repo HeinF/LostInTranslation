@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { checkLocalUser, deleteHistory } from "../reducers/userSlice";
 import { useEffect, useState } from "react";
+import { DELETE_HISTORY_FAILED } from "../const/index";
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -30,11 +31,17 @@ const Profile = () => {
 
   return (
     <>
-      <p>Profile</p>
+      <p>
+        Welcome to the profile page, here you can see your last 10 translations
+      </p>
       {history.map((element, index) => (
         <p key={index}>{element}</p>
       ))}
       <button onClick={handleDelete}>Delete</button>
+      {user.error === DELETE_HISTORY_FAILED && (
+        <p>Could not delete translations</p>
+      )}
+      {user.loading && <p>Deleting translations, please wait...</p>}
     </>
   );
 };

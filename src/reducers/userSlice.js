@@ -1,6 +1,11 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { createHeaders } from "../api/index";
 import { storageRead, storageSave } from "../utils/storage";
+import {
+  USER_NOT_FOUND,
+  ADD_TRANSLATION_FAILED,
+  DELETE_HISTORY_FAILED,
+} from "../const/index";
 
 const apiUrl = process.env.REACT_APP_API_URL;
 const localKey = process.env.REACT_APP_LOCAL_STORAGE_KEY;
@@ -26,7 +31,7 @@ export const fetchUser = createAsyncThunk(
     // Return "User not found" as an error so that the component knows to call "createUser"
     const user = {
       username: username,
-      error: "User not found",
+      error: USER_NOT_FOUND,
     };
     return user;
   }
@@ -122,6 +127,11 @@ export const userSlice = createSlice({
     },
     logOut: (state) => {
       storeUserLocal(null);
+      state.username = null;
+      state.translations = [];
+      state.id = 0;
+      state.loading = false;
+      state.error = null;
       state.storedLocal = false;
     },
   },
@@ -134,7 +144,7 @@ export const userSlice = createSlice({
       state.loading = false;
     },
     [fetchUser.fulfilled]: (state, action) => {
-      if (action.payload.error === "User not found") {
+      if (action.payload.error === USER_NOT_FOUND) {
         state.username = action.payload.username;
         state.error = action.payload.error;
       } else {
@@ -178,7 +188,7 @@ export const userSlice = createSlice({
     },
     [addTranslation.rejected]: (state, action) => {
       state.loading = false;
-      state.error = "addTranslation failed";
+      state.error = ADD_TRANSLATION_FAILED;
     },
 
     [addTranslation.fulfilled]: (state, action) => {
@@ -196,7 +206,7 @@ export const userSlice = createSlice({
     },
     [deleteHistory.rejected]: (state, action) => {
       state.loading = false;
-      state.error = "deleteHistory failed";
+      state.error = DELETE_HISTORY_FAILED;
     },
 
     [deleteHistory.fulfilled]: (state, action) => {
