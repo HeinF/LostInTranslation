@@ -1,7 +1,13 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { createHeaders } from "../api/index";
+import { storageRead, storageSave } from "../utils/storage";
 
 const apiUrl = process.env.REACT_APP_API_URL;
+const localKey = process.env.REACT_APP_LOCAL_STORAGE_KEY;
+
+const storeUserLocal = (userInfo) => {
+  storageSave(localKey, userInfo);
+};
 
 export const fetchUser = createAsyncThunk(
   "user/fetchUser",
@@ -53,8 +59,19 @@ export const userSlice = createSlice({
     id: 0,
     loadingUser: false,
     error: null,
+    storedLocal: false,
   },
-  reducers: {},
+  reducers: {
+    loadLocalUser: (state, action) => {
+      let localUser = storageRead(localKey);
+      if (localUser !== null) {
+        state.username = localUser.username;
+        state.translations = localUser.translations;
+        state.id = localUser.id;
+        state.storedLocal = true;
+      }
+    },
+  },
   extraReducers: {
     [fetchUser.pending]: (state, action) => {
       state.loadingUser = true;
@@ -73,6 +90,12 @@ export const userSlice = createSlice({
         state.id = action.payload.user.id;
         state.loadingUser = false;
         state.error = null;
+        storeUserLocal({
+          username: state.username,
+          translations: state.translations,
+          id: state.id,
+        });
+        state.storedLocal = true;
       }
     },
     [createUser.pending]: (state, action) => {
@@ -90,9 +113,15 @@ export const userSlice = createSlice({
       state.id = action.payload.user.id;
       state.error = null;
       state.loadingUser = false;
+      storeUserLocal({
+        username: state.username,
+        translations: state.translations,
+        id: state.id,
+      });
+      state.storedLocal = true;
     },
   },
 });
 
-export const {} = userSlice.actions;
+export const { loadLocalUser } = userSlice.actions;
 export default userSlice.reducer;
