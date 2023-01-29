@@ -20,7 +20,7 @@ const Navbar = () => {
         {user.storedLocal && (
           <ul>
             <li>
-              <NavLink to="/Translation">Translate</NavLink>
+              <NavLink to="/Translate">Translate</NavLink>
             </li>
             <li>
               <NavLink to="/Profile">Profile</NavLink>

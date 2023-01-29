@@ -70,6 +70,29 @@ export const addTranslation = createAsyncThunk(
   }
 );
 
+export const deleteHistory = createAsyncThunk(
+  "user/deleteHistory",
+  async (notUsed, thunkAPI) => {
+    const translationState = thunkAPI.getState().user.translations;
+    let toKeep = [];
+    if (translationState.length > 9) {
+      toKeep = translationState.slice(0, translationState.length - 10);
+    }
+    const response = await fetch(`${apiUrl}/${thunkAPI.getState().user.id}`, {
+      method: "PATCH",
+      headers: createHeaders(),
+      body: JSON.stringify({
+        translations: toKeep,
+      }),
+    });
+    if (!response.ok) {
+      return new Promise.reject();
+    }
+    const user = await response.json();
+    return { user };
+  }
+);
+
 export const userSlice = createSlice({
   name: "user",
   initialState: {
@@ -159,6 +182,24 @@ export const userSlice = createSlice({
     },
 
     [addTranslation.fulfilled]: (state, action) => {
+      state.loading = false;
+      state.error = null;
+      state.translations = action.payload.user.translations;
+      storeUserLocal({
+        username: state.username,
+        translations: state.translations,
+        id: state.id,
+      });
+    },
+    [deleteHistory.pending]: (state, action) => {
+      state.loading = true;
+    },
+    [deleteHistory.rejected]: (state, action) => {
+      state.loading = false;
+      state.error = "deleteHistory failed";
+    },
+
+    [deleteHistory.fulfilled]: (state, action) => {
       state.loading = false;
       state.error = null;
       state.translations = action.payload.user.translations;
