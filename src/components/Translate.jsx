@@ -1,9 +1,15 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { addTranslation } from "../reducers/userSlice";
+import { addTranslation, checkLocalUser } from "../reducers/userSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import SignDisplay from "./SignDisplay";
+
+const inputConfig = {
+  required: true,
+  maxLength: 40,
+  pattern: /^[a-zA-z]+([\s][a-zA-Z]+)*$/,
+};
 
 const Translate = () => {
   const {
@@ -12,22 +18,19 @@ const Translate = () => {
     formState: { errors },
   } = useForm();
 
-  const inputConfig = {
-    required: true,
-    maxLength: 40,
-    pattern: /^[a-zA-z]+([\s][a-zA-Z]+)*$/,
-  };
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { user } = useSelector((state) => state);
   const [newestTranslation, setNewestTranslation] = useState(null);
+  useEffect(() => {
+    dispatch(checkLocalUser());
+    if (user.storedLocal === false) {
+      navigate("/");
+    }
+  }, [user, dispatch, navigate]);
 
   const onSubmit = ({ translation }) => {
-    const updateData = {
-      id: user.id,
-      translations: user.translations.concat(translation),
-    };
-    dispatch(addTranslation(updateData));
+    dispatch(addTranslation(translation));
     setNewestTranslation(translation);
   };
 

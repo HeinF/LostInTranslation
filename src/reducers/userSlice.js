@@ -53,13 +53,13 @@ export const createUser = createAsyncThunk(
 
 export const addTranslation = createAsyncThunk(
   "user/addTranslation",
-  async (data) => {
-    // console.log(translation);
-    const response = await fetch(`${apiUrl}/${data.id}`, {
+  async (newTranslation, thunkAPI) => {
+    const userState = thunkAPI.getState().user;
+    const response = await fetch(`${apiUrl}/${userState.id}`, {
       method: "PATCH",
       headers: createHeaders(),
       body: JSON.stringify({
-        translations: data.translations,
+        translations: [...userState.translations, newTranslation],
       }),
     });
     if (!response.ok) {
@@ -81,14 +81,25 @@ export const userSlice = createSlice({
     storedLocal: false,
   },
   reducers: {
-    loadLocalUser: (state, action) => {
+    loadLocalUser: (state) => {
       let localUser = storageRead(localKey);
       if (localUser !== null) {
         state.username = localUser.username;
         state.translations = localUser.translations;
         state.id = localUser.id;
         state.storedLocal = true;
+      } else {
+        state.storedLocal = false;
       }
+    },
+    checkLocalUser: (state) => {
+      if (storageRead(localKey === null)) {
+        state.storedLocal = false;
+      }
+    },
+    logOut: (state) => {
+      storeUserLocal(null);
+      state.storedLocal = false;
     },
   },
   extraReducers: {
@@ -160,5 +171,5 @@ export const userSlice = createSlice({
   },
 });
 
-export const { loadLocalUser } = userSlice.actions;
+export const { loadLocalUser, checkLocalUser, logOut } = userSlice.actions;
 export default userSlice.reducer;

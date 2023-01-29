@@ -25,7 +25,7 @@ const Login = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    dispatch(loadLocalUser(""));
+    dispatch(loadLocalUser());
   }, []);
 
   // Side Effects
