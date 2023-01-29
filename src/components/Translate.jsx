@@ -1,5 +1,9 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { addTranslation } from "../reducers/userSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import SignDisplay from "./SignDisplay";
 
 const Translate = () => {
   const {
@@ -13,9 +17,18 @@ const Translate = () => {
     maxLength: 40,
     pattern: /^[a-zA-z]+([\s][a-zA-Z]+)*$/,
   };
-  const [tranIn, setTranIn] = useState(null);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { user } = useSelector((state) => state);
+  const [newestTranslation, setNewestTranslation] = useState(null);
+
   const onSubmit = ({ translation }) => {
-    console.log(translation);
+    const updateData = {
+      id: user.id,
+      translations: user.translations.concat(translation),
+    };
+    dispatch(addTranslation(updateData));
+    setNewestTranslation(translation);
   };
 
   const errorMessage = (() => {
@@ -38,8 +51,16 @@ const Translate = () => {
           <input type="text" {...register("translation", inputConfig)} />
           {errorMessage}
         </fieldset>
-        <button type="submit">Translate</button>
+        <button type="submit" disabled={user.loading}>
+          Translate
+        </button>
       </form>
+      {!user.loading && user.error === null && (
+        <SignDisplay text={newestTranslation} />
+      )}
+      {user.error === "addTranslation failed" && (
+        <p>Error: Could not save translation</p>
+      )}
     </>
   );
 };

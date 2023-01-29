@@ -64,10 +64,10 @@ const Login = () => {
           <input type="text" {...register("username", usernameConfig)} />
           {errorMessage}
         </fieldset>
-        <button type="submit" disabled={user.loadingUser}>
+        <button type="submit" disabled={user.loading}>
           Login
         </button>
-        {user.loadingUser && <p>Please wait...</p>}
+        {user.loading && <p>Please wait...</p>}
       </form>
     </>
   );

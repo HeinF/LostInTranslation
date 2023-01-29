@@ -51,13 +51,32 @@ export const createUser = createAsyncThunk(
   }
 );
 
+export const addTranslation = createAsyncThunk(
+  "user/addTranslation",
+  async (data) => {
+    // console.log(translation);
+    const response = await fetch(`${apiUrl}/${data.id}`, {
+      method: "PATCH",
+      headers: createHeaders(),
+      body: JSON.stringify({
+        translations: data.translations,
+      }),
+    });
+    if (!response.ok) {
+      return new Promise.reject();
+    }
+    const user = await response.json();
+    return { user };
+  }
+);
+
 export const userSlice = createSlice({
   name: "user",
   initialState: {
     username: null,
     translations: [],
     id: 0,
-    loadingUser: false,
+    loading: false,
     error: null,
     storedLocal: false,
   },
@@ -74,11 +93,11 @@ export const userSlice = createSlice({
   },
   extraReducers: {
     [fetchUser.pending]: (state, action) => {
-      state.loadingUser = true;
+      state.loading = true;
     },
     [fetchUser.rejected]: (state, action) => {
       state.error = action.error;
-      state.loadingUser = false;
+      state.loading = false;
     },
     [fetchUser.fulfilled]: (state, action) => {
       if (action.payload.error === "User not found") {
@@ -88,7 +107,7 @@ export const userSlice = createSlice({
         state.username = action.payload.user.username;
         state.translations = action.payload.user.translations;
         state.id = action.payload.user.id;
-        state.loadingUser = false;
+        state.loading = false;
         state.error = null;
         storeUserLocal({
           username: state.username,
@@ -99,26 +118,44 @@ export const userSlice = createSlice({
       }
     },
     [createUser.pending]: (state, action) => {
-      state.loadingUser = true;
+      state.loading = true;
     },
     [createUser.rejected]: (state, action) => {
       // If creation failed, set username back to initial state
       state.username = null;
       state.error = action.error;
-      state.loadingUser = false;
+      state.loading = false;
     },
     [createUser.fulfilled]: (state, action) => {
       state.username = action.payload.user.username;
       state.translations = action.payload.user.translations;
       state.id = action.payload.user.id;
       state.error = null;
-      state.loadingUser = false;
+      state.loading = false;
       storeUserLocal({
         username: state.username,
         translations: state.translations,
         id: state.id,
       });
       state.storedLocal = true;
+    },
+    [addTranslation.pending]: (state, action) => {
+      state.loading = true;
+    },
+    [addTranslation.rejected]: (state, action) => {
+      state.loading = false;
+      state.error = "addTranslation failed";
+    },
+
+    [addTranslation.fulfilled]: (state, action) => {
+      state.loading = false;
+      state.error = null;
+      state.translations = action.payload.user.translations;
+      storeUserLocal({
+        username: state.username,
+        translations: state.translations,
+        id: state.id,
+      });
     },
   },
 });
