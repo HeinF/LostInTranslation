@@ -5,11 +5,12 @@ import { logOut } from "../reducers/userSlice";
 const Navbar = () => {
   const { user } = useSelector((state) => state);
   const dispatch = useDispatch();
-
+  // Handles onClick for the logout button
   const handleLogout = () => {
     dispatch(logOut());
   };
-
+  // Displays navigation options
+  // Conditionally displays Translate, Profile and Logout if user is logged in
   return (
     <>
       <nav>

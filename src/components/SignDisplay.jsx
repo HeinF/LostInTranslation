@@ -1,3 +1,4 @@
+// import image files
 import {
   signA,
   signB,
@@ -26,8 +27,9 @@ import {
   signY,
   signZ,
 } from "../img/signs/index";
-
+// Text is the users input passed down from Translate component
 const SignDisplay = ({ text }) => {
+  // Map image file to a letter
   const lookUpMap = {
     a: signA,
     b: signB,
@@ -56,7 +58,7 @@ const SignDisplay = ({ text }) => {
     y: signY,
     z: signZ,
   };
-
+  // Clean text and create an array of image objects
   const signArray = [];
   if (text !== null) {
     let cleanedText = text.replaceAll(" ", "").toLowerCase();
@@ -64,7 +66,7 @@ const SignDisplay = ({ text }) => {
       signArray.push(lookUpMap[element]);
     }
   }
-
+  // Display sign images
   return (
     <div>
       {signArray.map((element, index) => (

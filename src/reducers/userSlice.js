@@ -1,14 +1,22 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { createHeaders } from "../api/index";
 import { storageRead, storageSave } from "../utils/storage";
+import {
+  USER_NOT_FOUND,
+  ADD_TRANSLATION_FAILED,
+  DELETE_HISTORY_FAILED,
+} from "../const/index";
 
+// Get environment constants
 const apiUrl = process.env.REACT_APP_API_URL;
 const localKey = process.env.REACT_APP_LOCAL_STORAGE_KEY;
 
+// Stores user details in local storage
 const storeUserLocal = (userInfo) => {
   storageSave(localKey, userInfo);
 };
-
+// Checks API for user by the input username. If not found returns a user object with the input username
+// and an error to flag that the user was nou found in the API and should be created
 export const fetchUser = createAsyncThunk(
   "user/fetchUser",
   async (username) => {
@@ -26,12 +34,13 @@ export const fetchUser = createAsyncThunk(
     // Return "User not found" as an error so that the component knows to call "createUser"
     const user = {
       username: username,
-      error: "User not found",
+      error: USER_NOT_FOUND,
     };
     return user;
   }
 );
 
+//  Creates a new user with the given username and an empty array of translations
 export const createUser = createAsyncThunk(
   "user/createUser",
   async (username) => {
@@ -50,7 +59,7 @@ export const createUser = createAsyncThunk(
     return { user };
   }
 );
-
+// Adds a new translation to the API
 export const addTranslation = createAsyncThunk(
   "user/addTranslation",
   async (newTranslation, thunkAPI) => {
@@ -70,12 +79,14 @@ export const addTranslation = createAsyncThunk(
   }
 );
 
+// Deletes up to 10 of the newest translations
 export const deleteHistory = createAsyncThunk(
   "user/deleteHistory",
   async (notUsed, thunkAPI) => {
     const translationState = thunkAPI.getState().user.translations;
     let toKeep = [];
-    if (translationState.length > 9) {
+    // If there are more than 10 translations, we only want to delete the 10 most recent
+    if (translationState.length > 10) {
       toKeep = translationState.slice(0, translationState.length - 10);
     }
     const response = await fetch(`${apiUrl}/${thunkAPI.getState().user.id}`, {
@@ -93,6 +104,7 @@ export const deleteHistory = createAsyncThunk(
   }
 );
 
+// Defining out state and initial state
 export const userSlice = createSlice({
   name: "user",
   initialState: {
@@ -104,6 +116,7 @@ export const userSlice = createSlice({
     storedLocal: false,
   },
   reducers: {
+    // If a local user is found, load it into state and set the storedLocal flag to true
     loadLocalUser: (state) => {
       let localUser = storageRead(localKey);
       if (localUser !== null) {
@@ -115,13 +128,20 @@ export const userSlice = createSlice({
         state.storedLocal = false;
       }
     },
+    // Checks if user is stored locally. Used by components to guard routes
     checkLocalUser: (state) => {
       if (storageRead(localKey === null)) {
         state.storedLocal = false;
       }
     },
+    // Clear local storage and set state back to initial state
     logOut: (state) => {
       storeUserLocal(null);
+      state.username = null;
+      state.translations = [];
+      state.id = 0;
+      state.loading = false;
+      state.error = null;
       state.storedLocal = false;
     },
   },
@@ -134,9 +154,11 @@ export const userSlice = createSlice({
       state.loading = false;
     },
     [fetchUser.fulfilled]: (state, action) => {
-      if (action.payload.error === "User not found") {
+      //If user is not found, retain the input username in state and set flag user not found
+      if (action.payload.error === USER_NOT_FOUND) {
         state.username = action.payload.username;
         state.error = action.payload.error;
+        // If user is found in API, set state to returned user, store locally and set local flags
       } else {
         state.username = action.payload.user.username;
         state.translations = action.payload.user.translations;
@@ -160,6 +182,7 @@ export const userSlice = createSlice({
       state.error = action.error;
       state.loading = false;
     },
+    //If successful set state to returned user, store locally and set flags
     [createUser.fulfilled]: (state, action) => {
       state.username = action.payload.user.username;
       state.translations = action.payload.user.translations;
@@ -178,9 +201,9 @@ export const userSlice = createSlice({
     },
     [addTranslation.rejected]: (state, action) => {
       state.loading = false;
-      state.error = "addTranslation failed";
+      state.error = ADD_TRANSLATION_FAILED;
     },
-
+    // If addTranslation is successful, add new translation to state and local storage
     [addTranslation.fulfilled]: (state, action) => {
       state.loading = false;
       state.error = null;
@@ -196,9 +219,9 @@ export const userSlice = createSlice({
     },
     [deleteHistory.rejected]: (state, action) => {
       state.loading = false;
-      state.error = "deleteHistory failed";
+      state.error = DELETE_HISTORY_FAILED;
     },
-
+    // If deleteHistory is successful, update state of translation in redux and local storage
     [deleteHistory.fulfilled]: (state, action) => {
       state.loading = false;
       state.error = null;
