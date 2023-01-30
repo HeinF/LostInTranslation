@@ -1,3 +1,4 @@
+// File for importing sign images and making them available to import in components without too much clutter
 import signA from "./a.png";
 import signB from "./b.png";
 import signC from "./c.png";
